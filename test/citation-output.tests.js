@@ -69,6 +69,8 @@ describe("Citation HTML Output", function() {
     it("should mark bibliography section headings with docx-bibliography-header class", function() {
         return mammoth.convertToHtml({path: docxPath})
             .then(function(result) {
+                // eslint-disable-next-line no-console
+                console.log('result', result.value);
                 assert.ok(
                     result.value.includes('class="docx-bibliography-header"'),
                     "Bibliography section headings should be marked with docx-bibliography-header class"
