@@ -1455,11 +1455,15 @@ function isImage(options) {
     }
 }
 
-function readEmbeddedImage(element) {
+function readEmbeddedImage(element, options) {
+    options = options || {};
+
+    var relationships = [
+        imageRelationship("rId5", "media/hat.png")
+    ].concat(options.relationships || []);
+
     return readXmlElement(element, {
-        relationships: new Relationships([
-            imageRelationship("rId5", "media/hat.png")
-        ]),
+        relationships: new Relationships(relationships),
         contentTypes: fakeContentTypes,
         docxFile: createFakeDocxFile({
             "word/media/hat.png": IMAGE_BUFFER
@@ -1640,6 +1644,30 @@ test("no elements created if image cannot be found in wp:inline", function() {
     var result = readXmlElement(drawing);
     assert.deepEqual(result.messages, []);
     assert.deepEqual(result.value, []);
+});
+
+test("can read pictures with hyperlink specified in document properties", function() {
+    var drawing = createInlineImage({
+        blip: createEmbeddedBlip(IMAGE_RELATIONSHIP_ID),
+        docPrChildren: [
+            new XmlElement("a:hlinkClick", {"r:id": "rId42"})
+        ]
+    });
+    var relationships = [hyperlinkRelationship("rId42", "http://example.com")];
+
+    var result = readEmbeddedImage(drawing, {relationships: relationships});
+
+    return promiseThat(result, isSuccess(contains(
+        isHyperlink({
+            href: "http://example.com",
+            children: contains(
+                isImage({
+                    contentType: "image/png",
+                    buffer: IMAGE_BUFFER
+                })
+            )
+        })
+    )));
 });
 
 test("children of w:ins are converted normally", function() {
@@ -1893,7 +1921,11 @@ function single(array) {
 function createInlineImage(options) {
     return new XmlElement("w:drawing", {}, [
         new XmlElement("wp:inline", {}, [
-            new XmlElement("wp:docPr", {descr: options.description, title: options.title}),
+            new XmlElement(
+                "wp:docPr",
+                {descr: options.description, title: options.title},
+                options.docPrChildren
+            ),
             new XmlElement("a:graphic", {}, [
                 new XmlElement("a:graphicData", {}, [
                     new XmlElement("pic:pic", {}, [
