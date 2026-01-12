@@ -66,6 +66,31 @@ describe("Citation HTML Output", function() {
             });
     });
 
+    it("should mark bibliography section headings with docx-bibliography-header class", function() {
+        return mammoth.convertToHtml({path: docxPath})
+            .then(function(result) {
+                // eslint-disable-next-line no-console
+                console.log('result', result.value);
+                
+                assert.ok(
+                    result.value.includes('class="docx-bibliography-header"'),
+                    "Bibliography section headings should be marked with docx-bibliography-header class"
+                );
+                
+                // Verify heading content is NOT wrapped in citation spans
+                var headerMatch = result.value.match(/<h[1-6] class="docx-bibliography-header">([^<]*)</);
+                if (headerMatch) {
+                    var headerContent = headerMatch[1];
+                    assert.ok(
+                        headerContent === "Bibliography" ||
+                        headerContent === "References" ||
+                        headerContent === "Works Cited",
+                        "Bibliography header should contain plain text, not citation spans"
+                    );
+                }
+            });
+    });
+
     it("should not filter out bibliography sections in mammoth output", function() {
         return mammoth.convertToHtml({path: docxPath})
             .then(function(result) {
@@ -102,6 +127,21 @@ describe("Citation HTML Output", function() {
                     citationSpanRegex.test(result.value),
                     "Citations should be wrapped in span elements"
                 );
+            });
+    });
+
+    it("should NOT mark bibliography entries as citations", function() {
+        return mammoth.convertToHtml({path: docxPath})
+            .then(function(result) {
+                // Bibliography section paragraphs should NOT contain citation spans
+                var bibSectionMatch = result.value.match(/<p class="docx-bibliography-section">([^]*?)<\/p>/);
+                if (bibSectionMatch) {
+                    var bibContent = bibSectionMatch[1];
+                    assert.ok(
+                        !bibContent.includes('class="docx-citation"'),
+                        "Bibliography section entries should NOT be wrapped in citation spans"
+                    );
+                }
             });
     });
 });
