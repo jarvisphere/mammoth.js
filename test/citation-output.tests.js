@@ -27,7 +27,13 @@ describe("Citation HTML Output", function() {
                 var match = result.value.match(/data-citation="([^"]*)"/);
                 assert.ok(match, "Should find data-citation attribute");
 
-                var citationData = JSON.parse(match[1]);
+                // Decode HTML entities
+                var attrValue = match[1]
+                    .replace(/&quot;/g, '"')
+                    .replace(/&amp;/g, '&')
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>');
+                var citationData = JSON.parse(attrValue);
                 assert.strictEqual(citationData.type, "citation", "Should have type:citation");
                 assert.ok(citationData.tag, "Should have tag field");
                 assert.ok(citationData.bibliographyData, "Should have bibliographyData");
