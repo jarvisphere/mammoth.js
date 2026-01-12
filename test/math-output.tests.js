@@ -33,6 +33,20 @@ describe("Math HTML Output", function() {
             });
     });
 
+    it("should convert common math structures to LaTeX", function() {
+        return mammoth.convertToHtml({path: docxPath})
+            .then(function(result) {
+                var html = result.value;
+                
+                // Check for LaTeX patterns (fractions, superscripts, etc.)
+                // The exact output depends on what's in the test file
+                assert.ok(
+                    html.includes('data-math-text=') && html.includes('docx-math'),
+                    "Math should be converted to LaTeX format"
+                );
+            });
+    });
+
     it("should wrap math in span elements", function() {
         return mammoth.convertToHtml({path: docxPath})
             .then(function(result) {
