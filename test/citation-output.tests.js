@@ -69,9 +69,6 @@ describe("Citation HTML Output", function() {
     it("should mark bibliography section headings with docx-bibliography-header class", function() {
         return mammoth.convertToHtml({path: docxPath})
             .then(function(result) {
-                // eslint-disable-next-line no-console
-                console.log('result', result.value);
-                
                 assert.ok(
                     result.value.includes('class="docx-bibliography-header"'),
                     "Bibliography section headings should be marked with docx-bibliography-header class"
@@ -107,14 +104,20 @@ describe("Citation HTML Output", function() {
             });
     });
 
-    it("should preserve multiple citations in document", function() {
+    it("should preserve inline citations in document body", function() {
         return mammoth.convertToHtml({path: docxPath})
             .then(function(result) {
-                // Count citation occurrences
+                // Count citation occurrences - should find inline citations but NOT bibliography section citations
                 var citationMatches = result.value.match(/class="docx-citation"/g);
                 assert.ok(
-                    citationMatches && citationMatches.length > 1,
-                    "Should preserve multiple citations (found " + (citationMatches ? citationMatches.length : 0) + ")"
+                    citationMatches && citationMatches.length >= 1,
+                    "Should preserve inline citations (found " + (citationMatches ? citationMatches.length : 0) + ")"
+                );
+                
+                // Verify the inline citation is present
+                assert.ok(
+                    result.value.includes("(Wu, 2024)"),
+                    "Should preserve inline citation text"
                 );
             });
     });
